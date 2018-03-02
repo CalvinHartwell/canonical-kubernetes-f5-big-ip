@@ -1,4 +1,4 @@
-# canonical-kubernetes-f5-bigip
+# Canonical Kubernetes with F5 BigIP (cdk-f5-bigip)
 
 This document describes how to integrate Canonical Kubernetes (CDK) with F5 BigIP devices. 
 
