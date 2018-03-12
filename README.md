@@ -1,6 +1,9 @@
 # Canonical Kubernetes with F5 BigIP (cdk-f5-bigip)
 
-This document describes how to integrate Canonical Kubernetes (CDK) with F5 Networks Big-IP Devices.
+This document describes how to integrate Canonical Kubernetes (CDK) with F5 Networks Big-IP load balancer devices.
+
+We will deploy Canonical Kubernetes, the F5 Networks Big-IP Device and the F5 k8s-bigip-ctlr to control the loadbalancer.
+
 
 ## Deploying Canonical Kubernetes (CDK)
 
@@ -218,3 +221,8 @@ F5 Network's BigIP Product is shipped either as a physical or virtual device. Th
 ## Conclusion
 ### Known issues, bugs, caveats
 ### Useful Links
+
+- [http://clouddocs.f5.com/containers/v2/kubernetes/]
+- [https://kubernetes.io/docs/getting-started-guides/ubuntu/installation/](https://kubernetes.io/docs/getting-started-guides/ubuntu/installation/)
+- [https://github.com/juju-solutions/bundle-canonical-kubernetes](https://github.com/juju-solutions/bundle-canonical-kubernetes)
+- [https://github.com/juju-solutions/bundle-canonical-kubernetes/wiki/Authorization-Mode-and-RBAC](https://github.com/juju-solutions/bundle-canonical-kubernetes/wiki/Authorization-Mode-and-RBAC)
