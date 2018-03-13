@@ -1,9 +1,8 @@
-# Canonical Kubernetes with F5 BigIP (cdk-f5-bigip)
+# Canonical Kubernetes with F5 Big-IP (cdk-f5-bigip)
 
 This document describes how to integrate Canonical Kubernetes (CDK) with F5 Networks Big-IP load balancer devices.
 
-We will deploy Canonical Kubernetes, the F5 Networks Big-IP Device and the F5 k8s-bigip-ctlr to control the loadbalancer.
-
+We will deploy Canonical Kubernetes, the F5 Networks Big-IP Device and the F5 k8s-bigip-ctlr to control the loadbalancer.adi
 
 ## Deploying Canonical Kubernetes (CDK)
 
@@ -210,14 +209,14 @@ To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'
 
 **__Note: There are two other ways CDK would be deployed, either using [Conjure-up](https://tutorials.ubuntu.com/tutorial/install-kubernetes-with-conjure-up#0) or using the graphical juju-as-a-service tool provided at [https://jujucharms.com/](https://jujucharms.com/).__**
 
-## Deploying the F5 BigIP
+## Deploying the F5 Big-IP
 
 F5 Network's BigIP Product is shipped either as a physical or virtual device. They also provide an [AWS AMI](https://aws.amazon.com/marketplace/seller-profile?id=74d946f0-fa54-4d9f-99e8-ff3bd8eb2745) on the AWS Market Place which can be used for testing.
 
+As we've just deployed Kubernetes onto AWS, we will spin-up the load-balancer on that platform as well. The AMI I chose was the F5 Big-IP Virtual Edition - GOOD - Hourly, 25Mbps, v13 (https://aws.amazon.com/marketplace/pp/B079C44MFH?ref=cns_srchrow)[https://aws.amazon.com/marketplace/pp/B079C44MFH?ref=cns_srchrow]. There appears to be several different versions of the Big-IP
 
-
-### Configuring the F5 BigIP
-### Deploying the F5 BigIP Workload on CDK
+### Configuring the F5 Big-IP
+### Deploying the F5 Big-IP Workload on CDK
 ## Conclusion
 ### Known issues, bugs, caveats
 ### Useful Links
