@@ -1,8 +1,8 @@
-# Canonical Kubernetes with F5 Big-IP Load Balancers (cdk-f5-bigip)
+# Canonical Kubernetes with F5 Big-IP Load Balancers
 
 This document describes how to integrate Canonical Kubernetes (CDK) with F5 Networks Big-IP load balancer devices.
 
-We will deploy Canonical Kubernetes, the F5 Networks Big-IP Device and the F5 k8s-bigip-ctlr to control the loadbalancer.adi
+We will deploy Canonical Kubernetes, the F5 Networks Big-IP Device and the F5 k8s-bigip-ctlr to control the loadbalancer.
 
 ## Deploying Canonical Kubernetes (CDK)
 
@@ -343,7 +343,27 @@ spec:
       - name: f5-docker-images
 ```
 
-The first section of this yaml file includes the secret section,
+The first section of this yaml file creates a secret, which is used to store the API end-point and credentials the load-balancer controller container will use to access the API of the Load-balancer device itself. These credentials are simple base64 encoded strings. Let's replace these values:
+
+```
+  # First generate some new base64 encoded strings
+  calvinh@ubuntu-ws:~/.ssh$ echo -n "admin" | base64
+  YWRtaW4=
+  calvinh@ubuntu-ws:~/.ssh$ echo -n "https://34.241.93.33:8443" | base64
+aHR0cHM6Ly8zNC4yNDEuOTMuMzM6ODQ0Mw==
+```
+
+You can also decode strings on the command line:
+
+```
+  # Decoding the URL from the original example
+  calvinh@ubuntu-ws:~/Source/canonical-kubernetes-f5-bigip$ echo -n "aHR0cHM6Ly8xMC4xOTAuMjEuMTQ4Cg==" | base64 --decode
+https://10.190.21.148
+```
+
+Note that I have added the port 8443 to the URL endpoint, but the original example does not add the port, as it uses regular port 443.
+
+Next we modify the secret yaml: 
 
 ### How does it work?
 
