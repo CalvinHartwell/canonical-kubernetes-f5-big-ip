@@ -231,7 +231,7 @@ Once the load balancer has been spun up, we need to change the admin password:
  ssh admin@34.241.93.33
 ```
 
-- Next we change the password:
+- Next we change the password. Type quit to exit the interface afterwards:
 
 ```
 admin@(ip-172-31-47-72)(cfg-sync Standalone)(Active)(/Common)(tmos)# modify auth user admin password admin
@@ -268,9 +268,11 @@ Most third-party product integrations for Kubernetes are pretty transparent to t
 - Company produces a container for their product which is able to interact with the API(s) provided by their product.
 - You deploy the third-party product (in our case, F5 Big-IP Load Balancer) and configure some credentials for the API.
 - You deploy the third-party container on your kubernetes cluster for the specific device with the API endpoint and credentials specified.
-- The container picks up
+- The container picks up constructs which are created on Kubernetes and replicates them onto the Load-balancer, such as ingress rule creation.
 
-Included in this repository is a yaml file called cdk-f5-big-ip.yaml which describes the deployment of the F5 Big-IP Controller Container. Let's examine it:
+Included in this repository is a yaml file called cdk-f5-big-ip.yaml which describes the deployment of the F5 Big-IP Controller Container. The example file has been created based on documentation on F5's website: [http://clouddocs.f5.com/products/connectors/k8s-bigip-ctlr/v1.3/](http://clouddocs.f5.com/products/connectors/k8s-bigip-ctlr/v1.3/).
+
+Let's breakdown and examine the yaml:
 
 ```
 ---
@@ -341,6 +343,8 @@ spec:
       - name: f5-docker-images
 ```
 
+The first section of this yaml file includes the secret section,
+
 ### How does it work?
 
 ## Conclusion
@@ -350,6 +354,7 @@ spec:
 ### Known issues, bugs, caveats
 ### Useful Links
 
+- [http://clouddocs.f5.com/products/connectors/k8s-bigip-ctlr/v1.3/](http://clouddocs.f5.com/products/connectors/k8s-bigip-ctlr/v1.3/)
 - [http://clouddocs.f5.com/containers/v2/kubernetes/](http://clouddocs.f5.com/containers/v2/kubernetes/)
 - [https://kubernetes.io/docs/getting-started-guides/ubuntu/installation/](https://kubernetes.io/docs/getting-started-guides/ubuntu/installation/)
 - [https://github.com/juju-solutions/bundle-canonical-kubernetes](https://github.com/juju-solutions/bundle-canonical-kubernetes)
