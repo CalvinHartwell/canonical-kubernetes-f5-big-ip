@@ -207,7 +207,7 @@ InfluxDB is running at https://34.253.164.197:443/api/v1/namespaces/kube-system/
 To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'
 ```
 
-**__Note: There are two other ways CDK would be deployed, either using [Conjure-up](https://tutorials.ubuntu.com/tutorial/install-kubernetes-with-conjure-up#0) or using the graphical juju-as-a-service tool provided at [https://jujucharms.com/](https://jujucharms.com/).__**
+**__Note: There are two other ways CDK would be deployed, either using [Conjure-up](https://tutorials.ubuntu.com/tutorial/install-kubernetes-with-conjure-up#0) or using the graphical juju-as-a-service tool provided at [https://jujucharms.com](https://jujucharms.com).__**
 
 ## Deploying the F5 Big-IP
 
@@ -260,11 +260,15 @@ If you deploy your own load balancer the default credentials may be different. N
 
 ### Configuring the F5 Big-IP
 ### Deploying the F5 Big-IP Workload on CDK
+
+
+
 ## Conclusion
 ### Known issues, bugs, caveats
 ### Useful Links
 
-- [http://clouddocs.f5.com/containers/v2/kubernetes/]
+- [http://clouddocs.f5.com/containers/v2/kubernetes/](http://clouddocs.f5.com/containers/v2/kubernetes/)
 - [https://kubernetes.io/docs/getting-started-guides/ubuntu/installation/](https://kubernetes.io/docs/getting-started-guides/ubuntu/installation/)
 - [https://github.com/juju-solutions/bundle-canonical-kubernetes](https://github.com/juju-solutions/bundle-canonical-kubernetes)
 - [https://github.com/juju-solutions/bundle-canonical-kubernetes/wiki/Authorization-Mode-and-RBAC](https://github.com/juju-solutions/bundle-canonical-kubernetes/wiki/Authorization-Mode-and-RBAC)
+- [https://f5.com/products/deployment-methods/hardware](https://f5.com/products/deployment-methods/hardware)
