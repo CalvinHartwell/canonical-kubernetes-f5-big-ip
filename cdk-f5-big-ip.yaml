@@ -7,7 +7,7 @@ type: Opaque
 data:
   url: aHR0cHM6Ly8xMC4xOTAuMjEuMTQ4Cg==
   username: YWRtaW4=
-  password: YWRtaW4=
+  password: somepassword
 ---
   apiVersion: v1
   kind: ServiceAccount

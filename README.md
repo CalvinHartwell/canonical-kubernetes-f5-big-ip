@@ -284,7 +284,7 @@ type: Opaque
 data:
   url: aHR0cHM6Ly8xMC4xOTAuMjEuMTQ4Cg==
   username: YWRtaW4=
-  password: YWRtaW4=
+  password: somepassword
 ---
   apiVersion: v1
   kind: ServiceAccount
@@ -361,9 +361,16 @@ You can also decode strings on the command line:
 https://10.190.21.148
 ```
 
-Note that I have added the port 8443 to the URL endpoint, but the original example does not add the port, as it uses regular port 443.
+**__Note that I have added the port 8443 to the URL endpoint, but the original example does not add the port, as it uses regular port 443.__**
 
-Next we modify the secret yaml: 
+Next we modify the secret yaml and replace the existing values:
+
+```
+ # replace username, password and URL in file cdk-f5-big-ip.yaml:
+ sed -i 's/YWRtaW4=/<BASE64-USERNAME>/g' cdk-f5-big-ip.yaml
+ sed -i 's/somepassword/<BASE64-PASSWORD>/g' cdk-f5-big-ip.yaml
+ sed -i 's/aHR0cHM6Ly8xMC4xOTAuMjEuMTQ4Cg==/<BASE64-F5-URL>/g' cdk-f5-big-ip.yaml
+```
 
 ### How does it work?
 
