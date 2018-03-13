@@ -231,7 +231,7 @@ Once the load balancer has been spun up, we need to change the admin password:
  ssh admin@34.241.93.33
 ```
 
-- Next we change the password. Type quit to exit the interface afterwards:
+- Next we change the password:
 
 ```
 admin@(ip-172-31-47-72)(cfg-sync Standalone)(Active)(/Common)(tmos)# modify auth user admin password admin
@@ -243,11 +243,32 @@ Saving running configuration...
 Saving Ethernet mapping...done
 ```
 
-- Finally, we can now use the web interface. As our device only has one interface, the port 8443 is used to access the web interface. If you have more than one port, it is exposed through 443:
+**__Note: The default UI will run on port 8443 if only give the F5 device one interface, however, the container expects 443 so we must change it.__**
+
+- We can change the port with a few extra steps:
+
+
+```
+admin@(localhost)(cfg-sync )(INOPERATIVE)(/Common)(tmos)#
+admin@(localhost)(cfg-sync )(INOPERATIVE)(/Common)(tmos)# modify auth user admin password admin
+admin@(localhost)(cfg-sync )(INOPERATIVE)(/Common)(tmos)# modify sys httpd ssl-port 443
+admin@(ip-172-31-41-63)(cfg-sync )(INOPERATIVE)(/Common)(tmos)# modify net self-allow defaults add { tcp:443}
+admin@(ip-172-31-41-63)(cfg-sync )(INOPERATIVE)(/Common)(tmos)# save sys config
+Saving running configuration...
+  /config/bigip.conf
+  /config/bigip_base.conf
+  /config/bigip_user.conf
+Saving Ethernet mapping...done
+
+```
+
+- Type quit after you're done.
+
+Finally, we can now use the web interface. As our device only has one interface, the port 8443 is used to access the web interface. If you have more than one port, it is exposed through 443:
 
 ```
   # This should be resolvable now publically, try it in firefox.
-  wget https://<your F5 public ip or vip>:8443/ --no-check-certificate
+  wget https://<your F5 public ip or vip>:443/ --no-check-certificate
 ```
 
 ![f5 big-ip login](https://raw.githubusercontent.com/CalvinHartwell/canonical-kubernetes-f5-bigip/master/images/login.png "F5 Big-IP Login Screen")
@@ -260,7 +281,23 @@ There appears to be several different versions of the Big-IP appliance on AWS fo
 
 If you deploy your own load balancer the default credentials may be different. Note that the container work-load will have quite privileged access to your loadbalancer so using a model which is running in production is not recommended until you are more familiar with its operation.
 
+### Removing the F5 Big-IP Controller  
+
+If you wish to remove the F5 Big-IP Controller Container from the cluster, we can do it using kubectl. Deleting constructs in Kubernetes is as simple as creating them:
+
+```
+  # If you used the included example file
+  kubectl delete -f cdk-f5-big-ip.yaml
+```
+
+
 ### Configuring the F5 Big-IP load-balancer
+
+Before we configure the F5 Big-IP Load-balancer controller container, we must configure some additional things on the load-balancer.
+When you log-in to the GUI, you will be prompted to perform some initial setup. Just skip through the options and leave the default values.
+
+ 
+
 ### Deploying the F5 Big-IP Load-Balancer Workload on CDK
 
 Most third-party product integrations for Kubernetes are pretty transparent to the cluster itself. They usually function like so:
@@ -372,8 +409,46 @@ Next we modify the secret yaml and replace the existing values:
  sed -i 's/aHR0cHM6Ly8xMC4xOTAuMjEuMTQ4Cg==/<BASE64-F5-URL>/g' cdk-f5-big-ip.yaml
 ```
 
-### How does it work?
+Once you've changed the file, the section secret section should now look like this, your base64 values should be different:
 
+```
+```
+
+Now we're ready to deploy the container, run the kubectl apply -f command like so:
+
+```
+calvinh@ubuntu-ws:~/Source/canonical-kubernetes-f5-bigip$ kubectl apply -f cdk-f5-big-ip.yaml
+secret "bigip-credentials" created
+serviceaccount "bigip-ctlr-serviceaccount" created
+deployment "k8s-bigip-ctlr" created
+```
+
+Next, we check the pod status and watch for the controller to be deployed:
+
+```
+calvinh@ubuntu-ws:~/Source/canonical-kubernetes-f5-bigip$ kubectl get po
+NAME                                               READY     STATUS              RESTARTS   AGE
+default-http-backend-7bk4g                         1/1       Running             0          14h
+k8s-bigip-ctlr-68549fc7d5-wnlsc                    0/1       ContainerCreating   0          10s
+nginx-ingress-kubernetes-worker-controller-8mbtz   1/1       Running             0          14h
+nginx-ingress-kubernetes-worker-controller-mdxpl   1/1       Running             0          14h
+nginx-ingress-kubernetes-worker-controller-qs7g7   1/1       Running             0          14h
+
+...eventually:
+
+calvinh@ubuntu-ws:~/Source/canonical-kubernetes-f5-bigip$ kubectl get po
+NAME                                               READY     STATUS    RESTARTS   AGE
+default-http-backend-7bk4g                         1/1       Running   0          14h
+k8s-bigip-ctlr-68549fc7d5-wnlsc                    1/1       Running   0          1m
+nginx-ingress-kubernetes-worker-controller-8mbtz   1/1       Running   0          14h
+nginx-ingress-kubernetes-worker-controller-mdxpl   1/1       Running   0          14h
+nginx-ingress-kubernetes-worker-controller-qs7g7   1/1       Running   0          14h
+```
+
+You can watch
+
+###
+### How does it work?
 ## Conclusion
 
 
