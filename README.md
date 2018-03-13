@@ -209,11 +209,11 @@ To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'
 
 **__Note: There are two other ways CDK would be deployed, either using [Conjure-up](https://tutorials.ubuntu.com/tutorial/install-kubernetes-with-conjure-up#0) or using the graphical juju-as-a-service tool provided at [https://jujucharms.com](https://jujucharms.com).__**
 
-## Deploying the F5 Big-IP
+## Deploying the F5 Big-IP Load-Balancer
 
 F5 Network's BigIP Product is shipped either as a physical or virtual device. They also provide an [AWS AMI](https://aws.amazon.com/marketplace/seller-profile?id=74d946f0-fa54-4d9f-99e8-ff3bd8eb2745) on the AWS Market Place which can be used for testing.
 
-As we've just deployed Kubernetes onto AWS, we will spin-up the load-balancer on that platform as well. The AMI I chose was the F5 Big-IP Virtual Edition - GOOD - Hourly, 25Mbps, v13 (https://aws.amazon.com/marketplace/pp/B079C44MFH?ref=cns_srchrow)[https://aws.amazon.com/marketplace/pp/B079C44MFH?ref=cns_srchrow]. To Launch an instance on AWS, perform the following steps:
+As we've just deployed Kubernetes onto AWS, we will spin-up the load-balancer on that platform as well. The AMI I chose was the F5 Big-IP Virtual Edition - GOOD - Hourly, 25Mbps, v13 ([https://aws.amazon.com/marketplace/pp/B079C44MFH?ref=cns_srchrow](https://aws.amazon.com/marketplace/pp/B079C44MFH?ref=cns_srchrow)). To Launch an instance on AWS, perform the following steps:
 
 - Go to the AWS Console and login: (https://aws.amazon.com)[aws.amazon.com]
 - Select the correct region for where you deployed your cluster with Juju, in my case it was eu-west-1
@@ -254,7 +254,7 @@ Enter your credentials, login and you should see this screen:
 
 ![f5 big-ip gui](https://raw.githubusercontent.com/CalvinHartwell/canonical-kubernetes-f5-bigip/master/images/f5-gui.png "F5 Big-IP GUI")
 
-There appears to be several different versions of the Big-IP appliance on AWS for different bandwidth requirements and price ranges. This example uses the cheapest option but it is possible to sign-up for a (free trial of the virtual edition)[https://f5.com/products/deployment-methods/virtual-editions] if you're running on your own estate or you can use existing physical F5 hardware running Big-IP.
+There appears to be several different versions of the Big-IP appliance on AWS for different bandwidth requirements and price ranges. This example uses the cheapest option but it is possible to sign-up for a [free trial of the virtual edition](https://f5.com/products/deployment-methods/virtual-editions) if you're running on your own estate or you can use existing physical F5 hardware running Big-IP.
 
 If you deploy your own load balancer the default credentials may be different. Note that the container work-load will have quite privileged access to your loadbalancer so using a model which is running in production is not recommended until you are more familiar with its operation.
 
