@@ -213,7 +213,50 @@ To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'
 
 F5 Network's BigIP Product is shipped either as a physical or virtual device. They also provide an [AWS AMI](https://aws.amazon.com/marketplace/seller-profile?id=74d946f0-fa54-4d9f-99e8-ff3bd8eb2745) on the AWS Market Place which can be used for testing.
 
-As we've just deployed Kubernetes onto AWS, we will spin-up the load-balancer on that platform as well. The AMI I chose was the F5 Big-IP Virtual Edition - GOOD - Hourly, 25Mbps, v13 (https://aws.amazon.com/marketplace/pp/B079C44MFH?ref=cns_srchrow)[https://aws.amazon.com/marketplace/pp/B079C44MFH?ref=cns_srchrow]. There appears to be several different versions of the Big-IP
+As we've just deployed Kubernetes onto AWS, we will spin-up the load-balancer on that platform as well. The AMI I chose was the F5 Big-IP Virtual Edition - GOOD - Hourly, 25Mbps, v13 (https://aws.amazon.com/marketplace/pp/B079C44MFH?ref=cns_srchrow)[https://aws.amazon.com/marketplace/pp/B079C44MFH?ref=cns_srchrow]. To Launch an instance on AWS, perform the following steps:
+
+- Go to the AWS Console and login: (https://aws.amazon.com)[aws.amazon.com]
+- Select the correct region for where you deployed your cluster with Juju, in my case it was eu-west-1
+- Go to EC2, make sure you have a private key setup and Hit 'Launch Instance'
+- Go to AWS Marketplace, Type F5 BIG-IP and pick a flavor.
+- Use the defaults for the AMI, but make sure you pick one with version latest version (13 or higher) and make sure you pick the right SSH keypair.
+
+Once the load balancer has been spun up, we need to change the admin password:
+
+- SSH to the loadbalancer using the SSH key you setup, you can find the public IP address for the machine by looking at the machine in the EC2 GUI:
+
+```
+ ssh admin@34.241.93.33
+```
+
+- Next we change the password:
+
+```
+admin@(ip-172-31-47-72)(cfg-sync Standalone)(Active)(/Common)(tmos)# modify auth user admin password admin
+admin@(ip-172-31-47-72)(cfg-sync Standalone)(Active)(/Common)(tmos)# save sys config
+Saving running configuration...
+  /config/bigip.conf
+  /config/bigip_base.conf
+  /config/bigip_user.conf
+Saving Ethernet mapping...done
+```
+
+- Finally, we can now use the web interface. As our device only has one interface, the port 8443 is used to access the web interface. If you have more than one port, it is exposed through 443:
+
+```
+  # This should be resolvable now publically, try it in firefox.
+  wget https://<your F5 public ip or vip>:8443/ --no-check-certificate
+```
+
+![f5 big-ip login](https://raw.githubusercontent.com/CalvinHartwell/canonical-kubernetes-f5-bigip/master/images/login.png "F5 Big-IP Login Screen")
+
+Enter your credentials, login and you should see this screen:
+
+![f5 big-ip gui](https://raw.githubusercontent.com/CalvinHartwell/canonical-kubernetes-f5-bigip/master/images/f5-gui.png "F5 Big-IP GUI")
+
+There appears to be several different versions of the Big-IP appliance on AWS for different bandwidth requirements and price ranges. This example uses the cheapest option but it is possible to sign-up for a (free trial of the virtual edition)[https://f5.com/products/deployment-methods/virtual-editions] if you're running on your own estate or you can use existing physical F5 hardware running Big-IP.
+
+If you deploy your own load balancer the default credentials may be different. Note that the container work-load will have quite privileged access to your loadbalancer so using a model which is running in production is not recommended until you are more familiar with its operation.
 
 ### Configuring the F5 Big-IP
 ### Deploying the F5 Big-IP Workload on CDK
