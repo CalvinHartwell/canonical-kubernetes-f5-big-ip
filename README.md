@@ -263,9 +263,90 @@ If you deploy your own load balancer the default credentials may be different. N
 ### Configuring the F5 Big-IP load-balancer
 ### Deploying the F5 Big-IP Load-Balancer Workload on CDK
 
+Most third-party product integrations for Kubernetes are pretty transparent to the cluster itself. They usually function like so:
 
+- Company produces a container for their product which is able to interact with the API(s) provided by their product.
+- You deploy the third-party product (in our case, F5 Big-IP Load Balancer) and configure some credentials for the API.
+- You deploy the third-party container on your kubernetes cluster for the specific device with the API endpoint and credentials specified.
+- The container picks up
+
+Included in this repository is a yaml file called cdk-f5-big-ip.yaml which describes the deployment of the F5 Big-IP Controller Container. Let's examine it:
+
+```
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: bigip-credentials
+type: Opaque
+data:
+  url: aHR0cHM6Ly8xMC4xOTAuMjEuMTQ4Cg==
+  username: YWRtaW4=
+  password: YWRtaW4=
+---
+  apiVersion: v1
+  kind: ServiceAccount
+  metadata:
+    name: bigip-ctlr-serviceaccount
+    namespace: default
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: k8s-bigip-ctlr
+  namespace: kube-system
+spec:
+  replicas: 1
+  template:
+    metadata:
+      name: k8s-bigip-ctlr
+      labels:
+        app: k8s-bigip-ctlr
+    spec:
+      serviceAccountName: bigip-ctlr-serviceaccount
+      containers:
+        - name: k8s-bigip-ctlr
+          image: "f5networks/k8s-bigip-ctlr"
+          env:
+            - name: BIGIP_USERNAME
+              valueFrom:
+              secretKeyRef:
+                name: bigip-credentials
+                key: username
+            - name: BIGIP_PASSWORD
+              valueFrom:
+              secretKeyRef:
+                name: bigip-credentials
+                key: password
+            - name: BIGIP_URL
+              valueFrom:
+              secretKeyRef:
+                name: bigip-credentials
+                key: url
+          command: ["/app/bin/k8s-bigip-ctlr"]
+          args: ["--running-in-cluster=true",
+            "--bigip-url=$(BIGIP_URL)",
+            "--bigip-username=$(BIGIP_USERNAME)",
+            "--bigip-password=$(BIGIP_PASSWORD)",
+            "--bigip-partition=k8s",
+            "--namespace=default",
+            "--python-basedir=/app/python",
+            "--log-level=INFO",
+            "--verify-interval=30",
+            "--use-node-internal=true",
+            "--pool-member-type=nodeport",
+            "--kubeconfig=./config"
+          ]
+    imagePullSecrets:
+      - name: f5-docker-images
+```
+
+### How does it work?
 
 ## Conclusion
+
+
+
 ### Known issues, bugs, caveats
 ### Useful Links
 
