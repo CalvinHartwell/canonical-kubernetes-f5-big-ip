@@ -1,4 +1,4 @@
-# Canonical Kubernetes with F5 Big-IP (cdk-f5-bigip)
+# Canonical Kubernetes with F5 Big-IP Load Balancers (cdk-f5-bigip)
 
 This document describes how to integrate Canonical Kubernetes (CDK) with F5 Networks Big-IP load balancer devices.
 
@@ -213,9 +213,11 @@ To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'
 
 F5 Network's BigIP Product is shipped either as a physical or virtual device. They also provide an [AWS AMI](https://aws.amazon.com/marketplace/seller-profile?id=74d946f0-fa54-4d9f-99e8-ff3bd8eb2745) on the AWS Market Place which can be used for testing.
 
-As we've just deployed Kubernetes onto AWS, we will spin-up the load-balancer on that platform as well. The AMI I chose was the F5 Big-IP Virtual Edition - GOOD - Hourly, 25Mbps, v13 ([https://aws.amazon.com/marketplace/pp/B079C44MFH?ref=cns_srchrow](https://aws.amazon.com/marketplace/pp/B079C44MFH?ref=cns_srchrow)). To Launch an instance on AWS, perform the following steps:
+As we've just deployed Kubernetes onto AWS, we will spin-up the load-balancer on that platform as well. The AMI I chose was the F5 Big-IP Virtual Edition - GOOD - Hourly, 25Mbps, v13 ([https://aws.amazon.com/marketplace/pp/B079C44MFH?ref=cns_srchrow](https://aws.amazon.com/marketplace/pp/B079C44MFH?ref=cns_srchrow)).
 
-- Go to the AWS Console and login: (https://aws.amazon.com)[aws.amazon.com]
+To Launch an instance on AWS, perform the following steps:
+
+- Go to the AWS Console and login: [https://aws.amazon.com](aws.amazon.com)
 - Select the correct region for where you deployed your cluster with Juju, in my case it was eu-west-1
 - Go to EC2, make sure you have a private key setup and Hit 'Launch Instance'
 - Go to AWS Marketplace, Type F5 BIG-IP and pick a flavor.
@@ -258,8 +260,8 @@ There appears to be several different versions of the Big-IP appliance on AWS fo
 
 If you deploy your own load balancer the default credentials may be different. Note that the container work-load will have quite privileged access to your loadbalancer so using a model which is running in production is not recommended until you are more familiar with its operation.
 
-### Configuring the F5 Big-IP
-### Deploying the F5 Big-IP Workload on CDK
+### Configuring the F5 Big-IP load-balancer
+### Deploying the F5 Big-IP Load-Balancer Workload on CDK
 
 
 
