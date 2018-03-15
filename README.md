@@ -298,16 +298,15 @@ Note in the top-right handside of the F5 Load-Balancer interface it says Partiti
 
 From the default GUI page, go to System -> Users -> Partition List
 
-![f5 big-ip new partition](https://raw.githubusercontent.com/CalvinHartwell/canonical-kubernetes-f5-bigip/master/images/f5-gui.png "F5 Big-IP Partition List")
+![f5 big-ip new partition](https://raw.githubusercontent.com/CalvinHartwell/canonical-kubernetes-f5-bigip/master/images/5-gui-partitions.png "F5 Big-IP Partition List")
 
 On the partition list, you should see 'Common', hit the Create button on the right hand side. Fill in the details for the new Partition and call it k8s:
 
-![f5 big-ip create partition](https://raw.githubusercontent.com/CalvinHartwell/canonical-kubernetes-f5-bigip/master/images/f5-gui.png "F5 Big-IP Create Partition")
+![f5 big-ip create partition](https://raw.githubusercontent.com/CalvinHartwell/canonical-kubernetes-f5-bigip/master/images/f5-gui-new-k8s-partition.png "F5 Big-IP Create Partition")
 
 Finally hit the Finish button and we're ready to go. You should see two partitions now in the partition list. Depending on where you browse around, you can set the Partition in the top-right to k8s, which will filter your view to objects which belong to the k8s partition.
 
 ![f5 big-ip partition-list](https://raw.githubusercontent.com/CalvinHartwell/canonical-kubernetes-f5-bigip/master/images/f5-gui-partition-list.png "F5 Big-IP Partition List")
-
 
 ### Deploying the F5 Big-IP Load-Balancer Workload on CDK
 
