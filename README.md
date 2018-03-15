@@ -4,6 +4,21 @@ This document describes how to integrate Canonical Kubernetes (CDK) with F5 Netw
 
 We will deploy Canonical Kubernetes, the F5 Networks Big-IP Device and the F5 k8s-bigip-ctlr to control the loadbalancer.
 
+### Index
+
+- [Deploying Canonical Kubernetes](https://github.com/CalvinHartwell/canonical-kubernetes-f5-big-ip#deploying-canonical-kubernetes-cdk)
+- [Deploying F5 Big-IP Load-Balancer](https://github.com/CalvinHartwell/canonical-kubernetes-f5-big-ip#deploying-the-f5-big-ip-load-balancer)
+  - [Configuring the F5 Big-IP Load-Balancer](https://github.com/CalvinHartwell/canonical-kubernetes-f5-big-ip#configuring-the-f5-big-ip-load-balancer)
+  - [Removing the F5 Big-IP Load-Balancer](https://github.com/CalvinHartwell/canonical-kubernetes-f5-big-ip#removing-the-f5-big-ip-load-balancer)
+  - [Deploying the F5 Big-IP Load-Balancer Controller](https://github.com/CalvinHartwell/canonical-kubernetes-f5-big-ip#deploying-the-f5-big-ip-load-balancer-controller)
+- [Utilising the F5 Big-IP Load Balancer with Kubernetes](https://github.com/CalvinHartwell/canonical-kubernetes-f5-big-ip#utilising-the-f5-big-ip-load-balancer-using-kubernetes)
+  - [Removing the F5 Big-IP Controller Container](https://github.com/CalvinHartwell/canonical-kubernetes-f5-big-ip#removing-the-f5-big-ip-controller-container)
+  - [Troubleshooting](https://github.com/CalvinHartwell/canonical-kubernetes-f5-big-ip#troubleshooting-the-f5-big-ip-controller)
+- [Conclusion](https://github.com/CalvinHartwell/canonical-kubernetes-f5-big-ip#conclusion)
+  - [Software versions](https://github.com/CalvinHartwell/canonical-kubernetes-f5-big-ip##software-versions)
+  - [Getting Help & Support](https://github.com/CalvinHartwell/canonical-kubernetes-f5-big-ip#getting-help--support)
+- [Useful Links](https://github.com/CalvinHartwell/canonical-kubernetes-f5-big-ip#useful-links)
+
 ## Deploying Canonical Kubernetes (CDK)
 
 Deploying Canonical Kubernetes is really easy, I assume you are running on an Ubuntu machine and you have an AWS account.  Grab a new API key from AWS and put that into:
@@ -286,10 +301,6 @@ There appears to be several different versions of the Big-IP appliance on AWS fo
 
 If you deploy your own load balancer the default credentials may be different. Note that the container work-load will have quite privileged access to your loadbalancer so using a model which is running in production is not recommended until you are more familiar with its operation.
 
-### Removing the F5 Big-IP Load-Balancer
-
-Removing the load-balancer is just as easy as deploying it, just destroy the VM in the AWS EC2 web interface or using the cli-tool. Remember to clean-up any volumes you attached to the VM, any security groups you created and any SSH key-pairs you no longer need. If you've run the rest of the steps, make sure you remove the F5 Big-IP load balancer container from your cluster as well.
-
 ###  Configuring the F5 Big-IP load-balancer
 
 Before we configure the F5 Big-IP Load-balancer controller container, we must configure some additional things on the load-balancer.
@@ -308,7 +319,11 @@ Finally hit the Finish button and we're ready to go. You should see two partitio
 
 ![f5 big-ip partition-list](https://raw.githubusercontent.com/CalvinHartwell/canonical-kubernetes-f5-bigip/master/images/f5-gui-partition-list.png "F5 Big-IP Partition List")
 
-### Deploying the F5 Big-IP Load-Balancer Workload on CDK
+### Removing the F5 Big-IP Load-Balancer
+
+Removing the load-balancer is just as easy as deploying it, just destroy the VM in the AWS EC2 web interface or using the cli-tool. Remember to clean-up any volumes you attached to the VM, any security groups you created and any SSH key-pairs you no longer need. If you've run the rest of the steps, make sure you remove the F5 Big-IP load balancer container from your cluster as well.
+
+### Deploying the F5 Big-IP Load-Balancer Controller on CDK
 
 Most third-party product integrations for Kubernetes are pretty transparent to the cluster itself. They usually function like so:
 
@@ -488,7 +503,7 @@ These options are incredibly important for controlling the integration of the tw
 
 **__Note: as the --pool-member-type is set to nodeport, we need to set type 'nodeport' to each of the services we create on Kubernetes in order for these to be picked up. More information on this can be found here: [http://clouddocs.f5.com/containers/v2/kubernetes/kctlr-modes.html](http://clouddocs.f5.com/containers/v2/kubernetes/kctlr-modes.html).__**
 
-## Utilising the F5 Big-IP Load Balancer using Kubernetes
+## Utilising the F5 Big-IP Load Balancer with Kubernetes
 
 Included inside this repository is an example workload which will create objects on the load-balancer. This can be found inside the yaml file called cdk-f5-ingress-example.yaml:
 
@@ -633,7 +648,14 @@ We have covered deploying Canonical Kubernetes and integrating it with the F5 Bi
 
 More examples are planned, including how to use the VXLAN functionality with Flannel and Canal.
 
-### Getting Support
+### Software Versions
+
+The software versions used throughout this docunmentation are:
+ - Kubernetes 1.9.3
+ - F5 Big-IP Version 13
+ - F5 Big-IP Controller Container version 1.4
+
+### Getting Help & Support
 
 This document was written by [Calvin Hartwell](https://www.linkedin.com/in/calvinhartwell), please feel to drop me an email on [calvin.hartwell@canonical.com](calvin.hartwell@canonical.com).
 
