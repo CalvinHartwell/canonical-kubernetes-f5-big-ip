@@ -423,6 +423,16 @@ sed -i 's/aHR0cHM6Ly8xMC4xOTAuMjEuMTQ4Cg==/<BASE64-F5-URL>/g' cdk-f5-big-ip.yaml
 Once you've changed the file, the section secret section should now look like this, your base64 values should be different:
 
 ```
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: bigip-credentials
+type: Opaque
+data:
+  url: NTIuMzAuMjUuMjEz
+  username: YWRtaW4=
+  password: YWRtaW4=
 ```
 
 Now we're ready to deploy the container, run the kubectl apply -f command like so:
@@ -456,20 +466,194 @@ nginx-ingress-kubernetes-worker-controller-mdxpl   1/1       Running   0        
 nginx-ingress-kubernetes-worker-controller-qs7g7   1/1       Running   0          14h
 ```
 
-You can watch
+Now we're ready to utilise the load-balancer through Kubernetes. Note that at the bottom section of the F5 Big-IP Container, there is a section of run time arguments for the F5 Big-IP controller:
+
+```
+args: ["--running-in-cluster=true",
+  "--bigip-url=$(BIGIP_URL)",
+  "--bigip-username=$(BIGIP_USERNAME)",
+  "--bigip-password=$(BIGIP_PASSWORD)",
+  "--bigip-partition=k8s",
+  "--namespace=default",
+  "--python-basedir=/app/python",
+  "--log-level=INFO",
+  "--verify-interval=30",
+  "--use-node-internal=true",
+  "--pool-member-type=nodeport",
+  "--kubeconfig=./config"
+]
+```
+
+These options are incredibly important for controlling the integration of the two products. It is highly recommended that you read the F5 provided manual to understand these options in more detail ([http://clouddocs.f5.com/products/connectors/k8s-bigip-ctlr/v1.4/](http://clouddocs.f5.com/products/connectors/k8s-bigip-ctlr/v1.4/)).
+
+**__Note: as the --pool-member-type is set to nodeport, we need to set type 'nodeport' to each of the services we create on Kubernetes in order for these to be picked up. More information on this can be found here: [http://clouddocs.f5.com/containers/v2/kubernetes/kctlr-modes.html](http://clouddocs.f5.com/containers/v2/kubernetes/kctlr-modes.html).__**
+
+## Utilising the F5 Big-IP Load Balancer using Kubernetes
+
+Included inside this repository is an example workload which will create objects on the load-balancer. This can be found inside the yaml file called cdk-f5-ingress-example.yaml:
+
+```
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: cdk-cats
+  name:  cdk-cats
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app:  cdk-cats
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app:  cdk-cats
+        ima: pod
+    spec:
+      containers:
+      - image: calvinhartwell/cdk-cats:latest
+        imagePullPolicy: Always
+        name: cdk-cats
+        ports:
+        - containerPort: 80
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 5
+          timeoutSeconds: 30
+        resources: {}
+      restartPolicy: Always
+      serviceAccountName: ""
+status: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cdk-cats
+  labels:
+    app: cdk-cats
+spec:
+  type: NodePort
+  ports:
+    - port: 80
+      targetPort: 80
+      protocol: TCP
+  selector:
+    app: cdk-cats
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: cdk-cats
+  namespace: default
+  annotations:
+    # Provide an IP address from the external VLAN on your BIG-IP device
+    virtual-server.f5.com/ip: "10.190.25.70"
+    # Specify the BIG-IP partition containing the virtual server
+    virtual-server.f5.com/partition: "k8s"
+
+spec:
+  backend:
+    # The name of the Kubernetes Service you want to expose to external traffic
+    serviceName: cdk-cats
+    servicePort: 80
+```
+
+Essentially this yaml describes the deployment of a single container, service and ingress rule. The ingress rule has annotations added to it which are picked up by the F5 Big-IP Controller container and replicated to the load-balancer automatically. Note, because we are using nodeport, the service has been given the type 'NodePort'. The most important part of this example is the ingress rule at the bottom.
+
+The annotations section is used to inform the Big-IP controller to pick-up information regarding the ingress rule, such as the IP address, port, partition name, etc. A full list of annotations and further examples can be found here in the F5 manual: [http://clouddocs.f5.com/products/connectors/k8s-bigip-ctlr/v1.4/](http://clouddocs.f5.com/products/connectors/k8s-bigip-ctlr/v1.4/).
+
+To deploy the workload, all we need to do is run the following command:
+
+```
+  # file is included in this repo.
+  kubectl apply -f cdk-f5-big-ip.yaml
+```
+
+This will cause Kubernetes to pull and run the container by creating a deployment. It will also create the service and the ingress rule.  If you tail the logs of your Big-IP Controller container logs, you should see messages like this:
+
+```
+calvinh@ubuntu-ws:~$ kubectl get po
+NAME                                               READY     STATUS    RESTARTS   AGE
+cdk-cats-8575fffbc-z7jzg                           1/1       Running   0          41m
+default-http-backend-7bk4g                         1/1       Running   0          2d
+k8s-bigip-ctlr-68549fc7d5-v7pd9                    1/1       Running   0          41m
+nginx-ingress-kubernetes-worker-controller-8mbtz   1/1       Running   0          2d
+nginx-ingress-kubernetes-worker-controller-mdxpl   1/1       Running   0          2d
+nginx-ingress-kubernetes-worker-controller-qs7g7   1/1       Running   0          2d
+calvinh@ubuntu-ws:~$ kubectl logs  -f k8s-bigip-ctlr-68549fc7d5-v7pd9
+2018/03/14 21:07:26 [INFO] Starting: Version: v1.4.2, BuildInfo: n829-346558842
+2018/03/14 21:07:26 [INFO] ConfigWriter started: 0xc420287f80
+2018/03/14 21:07:26 [INFO] Started config driver sub-process at pid: 13
+2018/03/14 21:07:26 [INFO] NodePoller (0xc42008a7e0) registering new listener: 0x407050
+2018/03/14 21:07:26 [INFO] NodePoller started: (0xc42008a7e0)
+2018/03/14 21:07:26 [WARNING] Overwriting existing entry for backend {ServiceName:cdk-cats ServicePort:80 Namespace:default}
+2018/03/14 21:07:26 [INFO] Wrote 0 Virtual Server and 0 IApp configs
+2018/03/14 21:07:26 [INFO] [2018-03-14 21:07:26,769 __main__ INFO] entering inotify loop to watch /tmp/k8s-bigip-ctlr.config017314497/config.json
+2018/03/14 21:07:44 [INFO] Port '80' for service 'cdk-cats' was not found.
+2018/03/14 21:07:44 [INFO] Service 'cdk-cats' has not been found.
+2018/03/14 21:07:44 [INFO] Wrote 0 Virtual Server and 0 IApp configs
+2018/03/14 21:07:44 [INFO] Port '80' for service 'cdk-cats' was not found.
+2018/03/14 21:07:44 [INFO] Service 'cdk-cats' has not been found.
+2018/03/14 21:07:44 [INFO] Wrote 0 Virtual Server and 0 IApp configs
+2018/03/14 21:07:53 [INFO] Wrote 0 Virtual Server and 0 IApp configs
+```
+
+This indicates that the Big-IP controller container has picked up the ingress rule and replicated onto the load-balancer. We can check that by logging onto the F5 Load-Balancer interface and going to the virtual server list. Make sure your partition is set to k8s in the top-right hand corner, otherwise you may not be able to see the objects:
+
+![f5 big-ip k8s virtual-server](https://raw.githubusercontent.com/CalvinHartwell/canonical-kubernetes-f5-bigip/master/images/f5-gui-virtual-server-created.png "F5 Big-IP k8s virtual server list")
+
+As you can see, the name (ingress_10-190-25-70_80) for the newly created Virtual Server has been generated based on the IP address specified as the 'virtual-server.f5.com/ip' annotation and the servicePort which has been set to 80. If you click into the virtual server you can check that the rule matches your specification.
+
+The controller container has also created a pool list for us automatically. Using the GUI on the left-hand side, click the Pools tab and go to Pool List. You should see a newly created pool based on the name of your ingress rule:
+
+![f5 big-ip k8s pool-list](https://raw.githubusercontent.com/CalvinHartwell/canonical-kubernetes-f5-bigip/master/images/f5-gui-pool-list.png "F5 Big-IP k8s pool list")
+
+### Removing the F5 Big-IP Controller Container
+
+If you wish to remove the F5 Big-IP Controller from the cluster, we can do it using kubectl. Deleting constructs in Kubernetes is as simple as creating them:
+
+```
+  # If you used the nodeport example change the yaml filename if you used the ingress example.
+  kubectl delete -f cdk-f5-big-ip.yaml
+```
+
+### Troubleshooting the F5 Big-IP Controller
+
+F5 have provided a fully fledged Troubleshooting guide here: [http://clouddocs.f5.com/containers/v2/troubleshooting/kubernetes.html](http://clouddocs.f5.com/containers/v2/troubleshooting/kubernetes.html)
 
 ## Conclusion
 
+We have covered deploying Canonical Kubernetes and integrating it with the F5 Big-IP Load-Balancer. A simple example has been provided to demonstrate how this integration works.
 
+More examples are planned, including how to use the VXLAN functionality with Flannel and Canal.
 
-### Known issues, bugs, caveats
+### Getting Support
+
+This document was written by [Calvin Hartwell](https://www.linkedin.com/in/calvinhartwell), please feel to drop me an email on [calvin.hartwell@canonical.com](calvin.hartwell@canonical.com).
+
+To open issues with CDK, please open an issue with the repository here [https://github.com/juju-solutions/bundle-canonical-kubernetes](https://github.com/juju-solutions/bundle-canonical-kubernetes). If you want professional support for Kubernetes please contact Canonical Sales [https://www.ubuntu.com/kubernetes](https://www.ubuntu.com/kubernetes).
+
+F5 provides support through [Slack](https://f5cloudsolutions.herokuapp.com/) and through paid support. Please contact F5 directly to get more help with their product. You can also open issues on the F5 Big-IP controller itself [https://github.com/F5Networks/k8s-bigip-ctlr/issues](https://github.com/F5Networks/k8s-bigip-ctlr/issues).
+
 ### Useful Links
-
-
 - [https://github.com/F5Networks/k8s-bigip-ctlr](https://github.com/F5Networks/k8s-bigip-ctlr)
 - [http://clouddocs.f5.com/containers/v2/index.html](http://clouddocs.f5.com/containers/v2/index.html)
 - [http://clouddocs.f5.com/products/connectors/k8s-bigip-ctlr/v1.4/](http://clouddocs.f5.com/products/connectors/k8s-bigip-ctlr/v1.4/)
+- [http://clouddocs.f5.com/containers/v2/kubernetes/kctlr-modes.html](http://clouddocs.f5.com/containers/v2/kubernetes/kctlr-modes.html)
+- [http://clouddocs.f5.com/containers/v2/kubernetes/flannel-bigip-info.html](http://clouddocs.f5.com/containers/v2/kubernetes/flannel-bigip-info.html)
+- [http://clouddocs.f5.com/containers/v2/kubernetes/kctlr-use-bigip-k8s.html](http://clouddocs.f5.com/containers/v2/kubernetes/kctlr-use-bigip-k8s.html)
+- [http://clouddocs.f5.com/containers/v2/kubernetes/kctlr-manage-bigip-objects.html](http://clouddocs.f5.com/containers/v2/kubernetes/kctlr-manage-bigip-objects.html)
+- [http://clouddocs.f5.com/containers/v2/kubernetes/kctlr-app-install.html](http://clouddocs.f5.com/containers/v2/kubernetes/kctlr-app-install.html)
+- [http://clouddocs.f5.com/containers/v2/kubernetes/kctlr-ingress.html](http://clouddocs.f5.com/containers/v2/kubernetes/kctlr-ingress.html)
 - [https://kubernetes.io/docs/getting-started-guides/ubuntu/installation/](https://kubernetes.io/docs/getting-started-guides/ubuntu/installation/)
+- [http://clouddocs.f5.com/containers/v2/kubernetes/kctlr-manage-bigip-objects.html](http://clouddocs.f5.com/containers/v2/kubernetes/kctlr-manage-bigip-objects.html)
+- [http://clouddocs.f5.com/containers/v2/kubernetes/kctlr-ingress.html](http://clouddocs.f5.com/containers/v2/kubernetes/kctlr-ingress.html)
 - [https://github.com/juju-solutions/bundle-canonical-kubernetes](https://github.com/juju-solutions/bundle-canonical-kubernetes)
 - [https://github.com/juju-solutions/bundle-canonical-kubernetes/wiki/Authorization-Mode-and-RBAC](https://github.com/juju-solutions/bundle-canonical-kubernetes/wiki/Authorization-Mode-and-RBAC)
 - [https://f5.com/products/deployment-methods/hardware](https://f5.com/products/deployment-methods/hardware)
