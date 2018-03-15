@@ -43,6 +43,7 @@ metadata:
   labels:
     app: cdk-cats
 spec:
+  type: NodePort
   ports:
     - port: 80
       targetPort: 80
@@ -60,6 +61,7 @@ metadata:
     virtual-server.f5.com/ip: "10.190.25.70"
     # Specify the BIG-IP partition containing the virtual server
     virtual-server.f5.com/partition: "k8s"
+
 spec:
   backend:
     # The name of the Kubernetes Service you want to expose to external traffic

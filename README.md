@@ -213,14 +213,16 @@ To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'
 
 F5 Network's BigIP Product is shipped either as a physical or virtual device. They also provide an [AWS AMI](https://aws.amazon.com/marketplace/seller-profile?id=74d946f0-fa54-4d9f-99e8-ff3bd8eb2745) on the AWS Market Place which can be used for testing.
 
-As we've just deployed Kubernetes onto AWS, we will spin-up the load-balancer on that platform as well. The AMI I chose was the F5 Big-IP Virtual Edition - GOOD - Hourly, 25Mbps, v13 ([https://aws.amazon.com/marketplace/pp/B079C44MFH?ref=cns_srchrow](https://aws.amazon.com/marketplace/pp/B079C44MFH?ref=cns_srchrow)).
+As we've just deployed Kubernetes onto AWS, we will spin-up the load-balancer on that platform as well. The AMI I chose is called 'F5 BIG-IP Virtual Edition - GOOD - (Hourly, 200Mbps, v13)'  ([http://aws.amazon.com/marketplace/pp/B079C3WS75?ref=cns_srchrow](http://aws.amazon.com/marketplace/pp/B079C3WS75?ref=cns_srchrow)). Note that F5's licensing model revolves around flavours, Good being the cheapest licence, and best being the most feature-rich offering ([https://www.f5.com/pdf/licensing/good-better-best-licensing-overview.pdf](https://www.f5.com/pdf/licensing/good-better-best-licensing-overview.pdf)).
+
+Depending on which type of licence you have, your load-balancer options may be limited. For example, if you want to directly integrate the F5 Big-IP devices into your Kubernetes network, you will need to have a 'BEST' type licence. More information on this can be found here: [http://clouddocs.f5.com/containers/v2/kubernetes/kctlr-modes.html](http://clouddocs.f5.com/containers/v2/kubernetes/kctlr-modes.html).
 
 To Launch an instance on AWS, perform the following steps:
 
 - Go to the AWS Console and login: [https://aws.amazon.com](aws.amazon.com)
 - Select the correct region for where you deployed your cluster with Juju, in my case it was eu-west-1
 - Go to EC2, make sure you have a private key setup and Hit 'Launch Instance'
-- Go to AWS Marketplace, Type F5 BIG-IP and pick a flavor.
+- Go to AWS Marketplace, Type F5 BIG-IP and pick a flavor. Hit the Select button.
 - Use the defaults for the AMI, but make sure you pick one with version latest version (13 or higher) and make sure you pick the right SSH keypair.
 
 Once the load balancer has been spun up, we need to change the admin password:
@@ -252,7 +254,6 @@ Saving Ethernet mapping...done
 admin@(localhost)(cfg-sync )(INOPERATIVE)(/Common)(tmos)#
 admin@(localhost)(cfg-sync )(INOPERATIVE)(/Common)(tmos)# modify auth user admin password admin
 admin@(localhost)(cfg-sync )(INOPERATIVE)(/Common)(tmos)# modify sys httpd ssl-port 443
-admin@(ip-172-31-41-63)(cfg-sync )(INOPERATIVE)(/Common)(tmos)# modify net self-allow defaults add { tcp:443}
 admin@(ip-172-31-41-63)(cfg-sync )(INOPERATIVE)(/Common)(tmos)# save sys config
 Saving running configuration...
   /config/bigip.conf
@@ -264,7 +265,9 @@ Saving Ethernet mapping...done
 
 - Type quit after you're done.
 
-Finally, we can now use the web interface. As our device only has one interface, the port 8443 is used to access the web interface. If you have more than one port, it is exposed through 443:
+Finally, we can now use the web interface. If you didn't add two interfaces to your device and if you didn't change the default port, the load balancer will be available on https://<public-ip-of-F5>:8443. If you have more than one port, it is exposed through 443.
+
+It seems that the container doesn't handle anything else but 443, so it should be changed using the steps above first. You can test connectivity to the web gui using your web browser or wget. 
 
 ```
   # This should be resolvable now publically, try it in firefox.
@@ -447,8 +450,6 @@ nginx-ingress-kubernetes-worker-controller-qs7g7   1/1       Running   0        
 
 You can watch
 
-###
-### How does it work?
 ## Conclusion
 
 
@@ -456,10 +457,10 @@ You can watch
 ### Known issues, bugs, caveats
 ### Useful Links
 
+
 - [https://github.com/F5Networks/k8s-bigip-ctlr](https://github.com/F5Networks/k8s-bigip-ctlr)
-- [http://clouddocs.f5.com/products/connectors/k8s-bigip-ctlr/v1.3/](http://clouddocs.f5.com/products/connectors/k8s-bigip-ctlr/v1.3/)
-- [http://clouddocs.f5.com/containers/v2/kubernetes/](http://clouddocs.f5.com/containers/v2/kubernetes/)
-- [http://clouddocs.f5.com/containers/v2/kubernetes/kctlr-ingress.html#single-service](http://clouddocs.f5.com/containers/v2/kubernetes/kctlr-ingress.html#single-service)
+- [http://clouddocs.f5.com/containers/v2/index.html](http://clouddocs.f5.com/containers/v2/index.html)
+- [http://clouddocs.f5.com/products/connectors/k8s-bigip-ctlr/v1.4/](http://clouddocs.f5.com/products/connectors/k8s-bigip-ctlr/v1.4/)
 - [https://kubernetes.io/docs/getting-started-guides/ubuntu/installation/](https://kubernetes.io/docs/getting-started-guides/ubuntu/installation/)
 - [https://github.com/juju-solutions/bundle-canonical-kubernetes](https://github.com/juju-solutions/bundle-canonical-kubernetes)
 - [https://github.com/juju-solutions/bundle-canonical-kubernetes/wiki/Authorization-Mode-and-RBAC](https://github.com/juju-solutions/bundle-canonical-kubernetes/wiki/Authorization-Mode-and-RBAC)
