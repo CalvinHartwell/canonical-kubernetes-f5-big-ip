@@ -10,7 +10,7 @@ We will deploy Canonical Kubernetes, the F5 Networks Big-IP Device and the F5 k8
 - [Deploying F5 Big-IP Load-Balancer](https://github.com/CalvinHartwell/canonical-kubernetes-f5-big-ip#deploying-the-f5-big-ip-load-balancer)
   - [Configuring the F5 Big-IP Load-Balancer](https://github.com/CalvinHartwell/canonical-kubernetes-f5-big-ip#configuring-the-f5-big-ip-load-balancer)
   - [Removing the F5 Big-IP Load-Balancer](https://github.com/CalvinHartwell/canonical-kubernetes-f5-big-ip#removing-the-f5-big-ip-load-balancer)
-  - [Deploying the F5 Big-IP Load-Balancer Controller](https://github.com/CalvinHartwell/canonical-kubernetes-f5-big-ip#deploying-the-f5-big-ip-load-balancer-controller)
+  - [Deploying the F5 Big-IP Load-Balancer Controller](https://github.com/CalvinHartwell/canonical-kubernetes-f5-big-ip#deploying-the-f5-big-ip-load-balancer-controller-on-cdk)
 - [Utilising the F5 Big-IP Load Balancer with Kubernetes](https://github.com/CalvinHartwell/canonical-kubernetes-f5-big-ip#utilising-the-f5-big-ip-load-balancer-using-kubernetes)
   - [Removing the F5 Big-IP Controller Container](https://github.com/CalvinHartwell/canonical-kubernetes-f5-big-ip#removing-the-f5-big-ip-controller-container)
   - [Troubleshooting](https://github.com/CalvinHartwell/canonical-kubernetes-f5-big-ip#troubleshooting-the-f5-big-ip-controller)
@@ -301,7 +301,7 @@ There appears to be several different versions of the Big-IP appliance on AWS fo
 
 If you deploy your own load balancer the default credentials may be different. Note that the container work-load will have quite privileged access to your loadbalancer so using a model which is running in production is not recommended until you are more familiar with its operation.
 
-###  Configuring the F5 Big-IP load-balancer
+###  Configuring the F5 Big-IP Load-Balancer
 
 Before we configure the F5 Big-IP Load-balancer controller container, we must configure some additional things on the load-balancer.
 
@@ -621,7 +621,7 @@ calvinh@ubuntu-ws:~$ kubectl logs  -f k8s-bigip-ctlr-68549fc7d5-v7pd9
 
 This indicates that the Big-IP controller container has picked up the ingress rule and replicated onto the load-balancer. We can check that by logging onto the F5 Load-Balancer interface and going to the virtual server list. Make sure your partition is set to k8s in the top-right hand corner, otherwise you may not be able to see the objects:
 
-![f5 big-ip k8s virtual-server](https://raw.githubusercontent.com/CalvinHartwell/canonical-kubernetes-f5-bigip/master/images/f5-gui-virtual-server-created.png "F5 Big-IP k8s virtual server list")
+![f5 big-ip k8s virtual-server](https://raw.githubusercontent.com/CalvinHartwell/canonical-kubernetes-f5-bigip/master/images/f5-virtual-server-created.png "F5 Big-IP k8s virtual server list")
 
 As you can see, the name (ingress_10-190-25-70_80) for the newly created Virtual Server has been generated based on the IP address specified as the 'virtual-server.f5.com/ip' annotation and the servicePort which has been set to 80. If you click into the virtual server you can check that the rule matches your specification.
 
