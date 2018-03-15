@@ -217,6 +217,8 @@ As we've just deployed Kubernetes onto AWS, we will spin-up the load-balancer on
 
 Depending on which type of licence you have, your load-balancer options may be limited. For example, if you want to directly integrate the F5 Big-IP devices into your Kubernetes network, you will need to have a 'BEST' type licence. More information on this can be found here: [http://clouddocs.f5.com/containers/v2/kubernetes/kctlr-modes.html](http://clouddocs.f5.com/containers/v2/kubernetes/kctlr-modes.html).
 
+The next steps have not yet been automated but could easily be automated with a script and the aws-cli tool or by using Juju, puppet or ansible.
+
 To Launch an instance on AWS, perform the following steps:
 
 - Go to the AWS Console and login: [https://aws.amazon.com](aws.amazon.com)
@@ -267,7 +269,7 @@ Saving Ethernet mapping...done
 
 Finally, we can now use the web interface. If you didn't add two interfaces to your device and if you didn't change the default port, the load balancer will be available on https://<public-ip-of-F5>:8443. If you have more than one port, it is exposed through 443.
 
-It seems that the container doesn't handle anything else but 443, so it should be changed using the steps above first. You can test connectivity to the web gui using your web browser or wget. 
+It seems that the container doesn't handle anything else but 443, so it should be changed using the steps above first. You can test connectivity to the web gui using your web browser or wget.
 
 ```
   # This should be resolvable now publically, try it in firefox.
@@ -284,21 +286,27 @@ There appears to be several different versions of the Big-IP appliance on AWS fo
 
 If you deploy your own load balancer the default credentials may be different. Note that the container work-load will have quite privileged access to your loadbalancer so using a model which is running in production is not recommended until you are more familiar with its operation.
 
-### Removing the F5 Big-IP Controller  
+### Removing the F5 Big-IP Load-Balancer
 
-If you wish to remove the F5 Big-IP Controller Container from the cluster, we can do it using kubectl. Deleting constructs in Kubernetes is as simple as creating them:
+Removing the load-balancer is just as easy as deploying it, just destroy the VM in the AWS EC2 web interface or using the cli-tool. Remember to clean-up any volumes you attached to the VM, any security groups you created and any SSH key-pairs you no longer need. If you've run the rest of the steps, make sure you remove the F5 Big-IP load balancer container from your cluster as well.
 
-```
-  # If you used the included example file
-  kubectl delete -f cdk-f5-big-ip.yaml
-```
-
-
-### Configuring the F5 Big-IP load-balancer
+###  Configuring the F5 Big-IP load-balancer
 
 Before we configure the F5 Big-IP Load-balancer controller container, we must configure some additional things on the load-balancer.
-When you log-in to the GUI, you will be prompted to perform some initial setup. Just skip through the options and leave the default values.
 
+Note in the top-right handside of the F5 Load-Balancer interface it says Partition: 'common'. Partitions are used to essentially carve-up an F5 device for multiple users or projects. Each partition has its own set of associated F5 objects. The container we deploy on-top of Kubernetes to control the Big-IP device is unable to manage objects within the common partition and a new one must be created called k8s.
+
+From the default GUI page, go to System -> Users -> Partition List
+
+![f5 big-ip new partition](https://raw.githubusercontent.com/CalvinHartwell/canonical-kubernetes-f5-bigip/master/images/f5-gui.png "F5 Big-IP Partition List")
+
+On the partition list, you should see 'Common', hit the Create button on the right hand side. Fill in the details for the new Partition and call it k8s:
+
+![f5 big-ip create partition](https://raw.githubusercontent.com/CalvinHartwell/canonical-kubernetes-f5-bigip/master/images/f5-gui.png "F5 Big-IP Create Partition")
+
+Finally hit the Finish button and we're ready to go. You should see two partitions now in the partition list. Depending on where you browse around, you can set the Partition in the top-right to k8s, which will filter your view to objects which belong to the k8s partition.
+
+![f5 big-ip partition-list](https://raw.githubusercontent.com/CalvinHartwell/canonical-kubernetes-f5-bigip/master/images/f5-gui-partition-list.png "F5 Big-IP Partition List")
 
 
 ### Deploying the F5 Big-IP Load-Balancer Workload on CDK
@@ -310,7 +318,11 @@ Most third-party product integrations for Kubernetes are pretty transparent to t
 - You deploy the third-party container on your kubernetes cluster for the specific device with the API endpoint and credentials specified.
 - The container picks up constructs which are created on Kubernetes and replicates them onto the Load-balancer, such as ingress rule creation.
 
-Included in this repository is a yaml file called cdk-f5-big-ip.yaml which describes the deployment of the F5 Big-IP Controller Container. The example file has been created based on documentation on F5's website: [http://clouddocs.f5.com/products/connectors/k8s-bigip-ctlr/v1.3/](http://clouddocs.f5.com/products/connectors/k8s-bigip-ctlr/v1.3/).
+The F5 Big-IP Controller container functions like this as well. It is an open-source workload ([https://github.com/F5Networks/k8s-bigip-ctlr](https://github.com/F5Networks/k8s-bigip-ctlr)) which interacts with the Kubernetes API and the API of the Big-IP load balancer to automatically configure the load-balancer based on objects created on kubernetes:
+
+![f5 big-ip gui](https://raw.githubusercontent.com/CalvinHartwell/canonical-kubernetes-f5-bigip/master/images/f5-big-ip-k8s.png "F5 Big-IP GUI Kubernetes")
+
+The yaml file cdk-f5-big-ip.yaml included inside this repository describes the deployment of the F5 Big-IP Controller Container on-top of CDK. The example file has been created based on documentation on F5's website: [http://clouddocs.f5.com/products/connectors/k8s-bigip-ctlr/v1.4/](http://clouddocs.f5.com/products/connectors/k8s-bigip-ctlr/v1.4/).
 
 Let's breakdown and examine the yaml:
 
@@ -322,9 +334,9 @@ metadata:
   name: bigip-credentials
 type: Opaque
 data:
-  url: aHR0cHM6Ly8xMC4xOTAuMjEuMTQ4Cg==
+  url: NTIuMzAuMjUuMjEz
   username: YWRtaW4=
-  password: somepassword
+  password: YWRtaW4=
 ---
   apiVersion: v1
   kind: ServiceAccount
@@ -336,7 +348,7 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: k8s-bigip-ctlr
-  namespace: kube-system
+  namespace: default
 spec:
   replicas: 1
   template:
@@ -352,17 +364,17 @@ spec:
           env:
             - name: BIGIP_USERNAME
               valueFrom:
-              secretKeyRef:
+               secretKeyRef:
                 name: bigip-credentials
                 key: username
             - name: BIGIP_PASSWORD
               valueFrom:
-              secretKeyRef:
+               secretKeyRef:
                 name: bigip-credentials
                 key: password
             - name: BIGIP_URL
               valueFrom:
-              secretKeyRef:
+               secretKeyRef:
                 name: bigip-credentials
                 key: url
           command: ["/app/bin/k8s-bigip-ctlr"]
@@ -379,17 +391,16 @@ spec:
             "--pool-member-type=nodeport",
             "--kubeconfig=./config"
           ]
-    imagePullSecrets:
-      - name: f5-docker-images
+
 ```
 
 The first section of this yaml file creates a secret, which is used to store the API end-point and credentials the load-balancer controller container will use to access the API of the Load-balancer device itself. These credentials are simple base64 encoded strings. Let's replace these values:
 
 ```
-  # First generate some new base64 encoded strings
-  calvinh@ubuntu-ws:~/.ssh$ echo -n "admin" | base64
-  YWRtaW4=
-  calvinh@ubuntu-ws:~/.ssh$ echo -n "https://34.241.93.33:8443" | base64
+# First generate some new base64 encoded strings
+calvinh@ubuntu-ws:~/.ssh$ echo -n "admin" | base64
+YWRtaW4=
+calvinh@ubuntu-ws:~/.ssh$ echo -n "https://34.241.93.33:8443" | base64
 aHR0cHM6Ly8zNC4yNDEuOTMuMzM6ODQ0Mw==
 ```
 
@@ -401,15 +412,13 @@ You can also decode strings on the command line:
 https://10.190.21.148
 ```
 
-**__Note that I have added the port 8443 to the URL endpoint, but the original example does not add the port, as it uses regular port 443.__**
-
 Next we modify the secret yaml and replace the existing values:
 
 ```
  # replace username, password and URL in file cdk-f5-big-ip.yaml:
- sed -i 's/YWRtaW4=/<BASE64-USERNAME>/g' cdk-f5-big-ip.yaml
- sed -i 's/somepassword/<BASE64-PASSWORD>/g' cdk-f5-big-ip.yaml
- sed -i 's/aHR0cHM6Ly8xMC4xOTAuMjEuMTQ4Cg==/<BASE64-F5-URL>/g' cdk-f5-big-ip.yaml
+sed -i 's/YWRtaW4=/<BASE64-USERNAME>/g' cdk-f5-big-ip.yaml
+sed -i 's/somepassword/<BASE64-PASSWORD>/g' cdk-f5-big-ip.yaml
+sed -i 's/aHR0cHM6Ly8xMC4xOTAuMjEuMTQ4Cg==/<BASE64-F5-URL>/g' cdk-f5-big-ip.yaml
 ```
 
 Once you've changed the file, the section secret section should now look like this, your base64 values should be different:
