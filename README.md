@@ -298,7 +298,7 @@ Note in the top-right handside of the F5 Load-Balancer interface it says Partiti
 
 From the default GUI page, go to System -> Users -> Partition List
 
-![f5 big-ip new partition](https://raw.githubusercontent.com/CalvinHartwell/canonical-kubernetes-f5-bigip/master/images/5-gui-partitions.png "F5 Big-IP Partition List")
+![f5 big-ip new partition](https://raw.githubusercontent.com/CalvinHartwell/canonical-kubernetes-f5-bigip/master/images/f5-gui-partitions.png "F5 Big-IP Partition List")
 
 On the partition list, you should see 'Common', hit the Create button on the right hand side. Fill in the details for the new Partition and call it k8s:
 
