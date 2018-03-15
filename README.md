@@ -15,7 +15,7 @@ We will deploy Canonical Kubernetes, the F5 Networks Big-IP Device and the F5 k8
   - [Removing the F5 Big-IP Controller Container](https://github.com/CalvinHartwell/canonical-kubernetes-f5-big-ip#removing-the-f5-big-ip-controller-container)
   - [Troubleshooting](https://github.com/CalvinHartwell/canonical-kubernetes-f5-big-ip#troubleshooting-the-f5-big-ip-controller)
 - [Conclusion](https://github.com/CalvinHartwell/canonical-kubernetes-f5-big-ip#conclusion)
-  - [Software versions](https://github.com/CalvinHartwell/canonical-kubernetes-f5-big-ip##software-versions)
+  - [Software versions](https://github.com/CalvinHartwell/canonical-kubernetes-f5-big-ip#software-versions)
   - [Getting Help & Support](https://github.com/CalvinHartwell/canonical-kubernetes-f5-big-ip#getting-help--support)
 - [Useful Links](https://github.com/CalvinHartwell/canonical-kubernetes-f5-big-ip#useful-links)
 
