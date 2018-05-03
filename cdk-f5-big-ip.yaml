@@ -5,9 +5,9 @@ metadata:
   name: bigip-credentials
 type: Opaque
 data:
-  url: NTIuMzAuMjUuMjEz
-  username: YWRtaW4=
-  password: YWRtaW4=
+  url: <BASE64-F5-URL>
+  username: <BASE64-USERNAME>
+  password: <BASE64-PASSWORD>
 ---
   apiVersion: v1
   kind: ServiceAccount
