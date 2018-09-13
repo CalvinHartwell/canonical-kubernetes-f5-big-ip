@@ -1,8 +1,8 @@
-# This has now moved to an official Canonical maintained repository, found here: [cdk-f5-big-ip](https://github.com/CalvinHartwell/canonical-kubernetes-f5-big-ip)
+# This has now moved to an official Canonical maintained repository, found here: [cdk-f5-big-ip](https://github.com/CanonicalLtd/canonical-kubernetes-third-party-integrations/tree/master/cdk-f5-bigip)
 
 # Canonical Kubernetes with F5 Big-IP Load Balancers
 
-This documentation is no longer maintained and has moved to an official Canonical Repository which gets frequent updates: [https://github.com/CalvinHartwell/canonical-kubernetes-f5-big-ip](https://github.com/CalvinHartwell/canonical-kubernetes-f5-big-ip). 
+This documentation is no longer maintained and has moved to an official Canonical Repository which gets frequent updates: [https://github.com/CanonicalLtd/canonical-kubernetes-third-party-integrations/tree/master/cdk-f5-bigip](https://github.com/CanonicalLtd/canonical-kubernetes-third-party-integrations/tree/master/cdk-f5-bigip). 
 
 This document describes how to integrate Canonical Kubernetes (CDK) with F5 Networks Big-IP load balancer devices.
 
