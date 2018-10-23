@@ -435,7 +435,7 @@ Next we modify the secret yaml and replace the existing values:
 ```
  # replace username, password and URL in file cdk-f5-big-ip.yaml:
 sed -i 's/YWRtaW4=/<BASE64-USERNAME>/g' cdk-f5-big-ip.yaml
-sed -i 's/somepassword/<BASE64-PASSWORD>/g' cdk-f5-big-ip.yaml
+sed -i 's/base64password/<BASE64-PASSWORD>/g' cdk-f5-big-ip.yaml
 sed -i 's/aHR0cHM6Ly8xMC4xOTAuMjEuMTQ4Cg==/<BASE64-F5-URL>/g' cdk-f5-big-ip.yaml
 ```
 
